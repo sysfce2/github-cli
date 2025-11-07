@@ -17,17 +17,16 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-const ReleasePredicateType = "https://in-toto.io/attestation/release/v0.1"
-
 type Verifier interface {
 	// VerifyAttestation verifies the attestation for a given artifact
 	VerifyAttestation(art *artifact.DigestedArtifact, att *api.Attestation) (*verification.AttestationProcessingResult, error)
 }
 
 type AttestationVerifier struct {
-	AttClient  api.Client
-	HttpClient *http.Client
-	IO         *iostreams.IOStreams
+	AttClient   api.Client
+	HttpClient  *http.Client
+	IO          *iostreams.IOStreams
+	TrustedRoot string
 }
 
 func (v *AttestationVerifier) VerifyAttestation(art *artifact.DigestedArtifact, att *api.Attestation) (*verification.AttestationProcessingResult, error) {
@@ -41,6 +40,7 @@ func (v *AttestationVerifier) VerifyAttestation(art *artifact.DigestedArtifact, 
 		Logger:       att_io.NewHandler(v.IO),
 		NoPublicGood: true,
 		TrustDomain:  td,
+		TrustedRoot:  v.TrustedRoot,
 	})
 	if err != nil {
 		return nil, err
